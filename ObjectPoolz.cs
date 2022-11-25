@@ -34,32 +34,36 @@ public class ObjectPoolz : MonoBehaviour
     {
         GameObject newObj = Instantiate(prefab, transform);
         newObj.name = prefab.name; // to remove "(Clone)"
+        _objInstantiated += 1;
+        _objFree += 1;
         return newObj;
     }
 
+    void PrepareForNewPrefab(GameObject prefab)
+    {
+        poolKeys.Add(prefab.name);
+        pool.Add(prefab.name, new List<GameObject>());
+
+        pool[prefab.name].Add(InstantiateNew(prefab));
+        poolLocalScales.Add(prefab.name, pool[prefab.name][0].transform.localScale);
+    }
+    
     GameObject GetFreeObject(GameObject prefab)
     {
         if (!PoolHasKey(prefab.name))
         {
-            poolKeys.Add(prefab.name);
-            pool.Add(prefab.name, new List<GameObject>());
-            
-            pool[prefab.name].Add(InstantiateNew(prefab));
-            poolLocalScales.Add(prefab.name, pool[prefab.name][0].transform.localScale);
+            PrepareForNewPrefab(prefab);
         }
 
         if (pool[prefab.name].Count == 0)
         {
             pool[prefab.name].Add(InstantiateNew(prefab));
-            _objInstantiated += 1;
         }
-        else
-        {
-            _objFree -= 1;
-        }
-
+        
+        
         GameObject freeObject = pool[prefab.name][0];
         pool[prefab.name].RemoveAt(0);
+        _objFree -= 1;
         return freeObject;
     }
 
